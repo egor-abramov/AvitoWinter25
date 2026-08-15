@@ -1,5 +1,12 @@
 package dto
 
+import (
+	"fmt"
+	"strings"
+
+	"github.com/go-playground/validator/v10"
+)
+
 type InventoryItem struct {
 	Type     string `json:"type"`
 	Quantity int    `json:"quantity"`
@@ -32,4 +39,23 @@ type ErrorResponse struct {
 
 type AuthResponse struct {
 	Token string `json:"token"`
+}
+
+func Error(msg string) ErrorResponse {
+	return ErrorResponse{
+		Errors: msg,
+	}
+}
+
+func ValidationError(errs validator.ValidationErrors) ErrorResponse {
+	var errMessages []string
+	for _, err := range errs {
+		switch err.ActualTag() {
+		case "required":
+			errMessages = append(errMessages, fmt.Sprintf("field '%s' is required", err.Field()))
+		default:
+			errMessages = append(errMessages, fmt.Sprintf("field '%s' is not valid", err.Field()))
+		}
+	}
+	return Error(strings.Join(errMessages, "; "))
 }

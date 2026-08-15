@@ -1,0 +1,12 @@
+env: "prod"
+http_server:
+  address: "localhost:8080"
+  timeout: 5s
+  idle_timeout: 30s
+  jwt:
+    exp_time: 24h
+db:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  database: "postgres"
