@@ -1,7 +1,10 @@
 package domain
 
+import "github.com/google/uuid"
+
 type Transaction struct {
-	UserFrom string
-	UserTo   string
+	ID       uuid.UUID
+	UserFrom User
+	UserTo   User
 	Amount   int
 }
