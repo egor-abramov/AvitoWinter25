@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+  test:
+    cmds:
+    - go test ./... {{.CLI_ARGS}}
+  run:
+    cmds:
+      - go run cmd/main.go
+  push:
+    vars:
+      MSG: '{{default "fix" .CLI_ARGS}}'
+    cmds:
+      - git add .
+      - git commit -m "{{.MSG}}"
+      - git push -u origin main
