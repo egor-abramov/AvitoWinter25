@@ -28,7 +28,7 @@ func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (*dom
 		&user.ID,
 		&user.Username,
 		&user.HashedPassword,
-		&user.Balance,
+		&user.Coins,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

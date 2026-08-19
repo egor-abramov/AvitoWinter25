@@ -11,19 +11,19 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserRepo interface {
+type Repo interface {
 	GetUserByUsername(ctx context.Context, username string) (*domain.User, error)
 	CreateUser(ctx context.Context, username, hashedPassword string) (uuid.UUID, error)
 }
 
 type Service struct {
 	log       *slog.Logger
-	repo      UserRepo
+	repo      Repo
 	jwtSecret string
 	jwtExpire time.Duration
 }
 
-func New(repo UserRepo, log *slog.Logger, jwtSecret string, jwrExpire time.Duration) *Service {
+func New(repo Repo, log *slog.Logger, jwtSecret string, jwrExpire time.Duration) *Service {
 	return &Service{
 		repo:      repo,
 		log:       log,
