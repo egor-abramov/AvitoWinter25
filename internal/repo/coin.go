@@ -5,34 +5,42 @@ import (
 	"errors"
 	"log/slog"
 
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type CoinRepo struct {
-	pool *pgxpool.Pool
-	log  *slog.Logger
+	pool   *pgxpool.Pool
+	log    *slog.Logger
+	getter *trmpgx.CtxGetter
 }
 
-func NewCoinRepo(pool *pgxpool.Pool, log *slog.Logger) *CoinRepo {
+func NewCoinRepo(log *slog.Logger, pool *pgxpool.Pool, getter *trmpgx.CtxGetter) *CoinRepo {
 	return &CoinRepo{
-		pool: pool,
-		log:  log,
+		pool:   pool,
+		log:    log,
+		getter: getter,
 	}
 }
 
-func (r *CoinRepo) AddCoins(ctx context.Context, username string, amount int) error {
-	query := `UPDATE users SET coins = coins + $1 WHERE username = $2`
+func (r *CoinRepo) AddCoins(ctx context.Context, userID uuid.UUID, amount int) error {
+	tr := r.getter.DefaultTrOrDB(ctx, r.pool)
 
-	_, err := r.pool.Exec(ctx, query, amount, username)
+	query := `UPDATE users SET coins = coins + $1 WHERE id = $2`
+
+	_, err := tr.Exec(ctx, query, amount, userID)
 	return err
 }
 
-func (r *CoinRepo) GetCoins(ctx context.Context, username string) (int, error) {
+func (r *CoinRepo) GetCoins(ctx context.Context, userID uuid.UUID) (int, error) {
+	tr := r.getter.DefaultTrOrDB(ctx, r.pool)
+
 	var coins int
 
-	query := `SELECT coins from users WHERE username = $1`
-	err := r.pool.QueryRow(ctx, query, username).Scan(&coins)
+	query := `SELECT coins from users WHERE id = $1`
+	err := tr.QueryRow(ctx, query, userID).Scan(&coins)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return 0, nil
