@@ -29,5 +29,7 @@ CREATE TABLE IF NOT EXISTS user_merch
 (
     id       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id  uuid REFERENCES users (id),
-    merch_id uuid REFERENCES merch (id)
+    merch_id uuid REFERENCES merch (id),
+    quantity integer not null CHECK ( quantity > 0 ),
+    UNIQUE (user_id, merch_id)
 );

@@ -2,8 +2,11 @@ package dto
 
 import (
 	"fmt"
+	"log/slog"
+	"net/http"
 	"strings"
 
+	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -58,4 +61,11 @@ func ValidationError(errs validator.ValidationErrors) ErrorResponse {
 		}
 	}
 	return Error(strings.Join(errMessages, "; "))
+}
+
+func RespondWithError(w http.ResponseWriter, r *http.Request, log *slog.Logger, op, msg string, err error, status int) {
+	log.Error("request failed", slog.String("op", op), slog.String("msg", msg), slog.Any("err", err))
+
+	render.Status(r, status)
+	render.JSON(w, r, Error(msg))
 }

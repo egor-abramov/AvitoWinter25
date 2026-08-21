@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"AvitoWinter25/internal/handler/dto"
 	"context"
 	"fmt"
 	"net/http"
@@ -9,9 +8,11 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
-const UserIDKey string = "user_id"
+const UserIDKey string = "id"
+const UserName string = "username"
 
 func NewJWTExtractor(secretKey string) func(handler http.Handler) http.Handler {
 	const op = "handler.middleware.NewJWTExtractor"
@@ -21,13 +22,11 @@ func NewJWTExtractor(secretKey string) func(handler http.Handler) http.Handler {
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
 				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, dto.Error("missing authorization header"))
 			}
 
 			headerParts := strings.Split(authHeader, " ")
 			if len(headerParts) != 2 || headerParts[0] != "Bearer" {
 				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, dto.Error("invalid authorization header format"))
 				return
 			}
 			tokenStr := headerParts[1]
@@ -41,26 +40,29 @@ func NewJWTExtractor(secretKey string) func(handler http.Handler) http.Handler {
 
 			if err != nil || !token.Valid {
 				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, dto.Error("invalid or expired token"))
 				return
 			}
 
 			claims, ok := token.Claims.(jwt.MapClaims)
 			if !ok {
 				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, dto.Error("failed to parse token claims"))
 				return
 			}
 
-			userIDFloat, ok := claims["user_id"].(float64)
+			userID, err := uuid.Parse(claims["id"].(string))
+			if err != nil {
+				render.Status(r, http.StatusUnauthorized)
+				return
+			}
+
+			username, ok := claims["username"].(string)
 			if !ok {
 				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, dto.Error("user_id not found in token"))
 				return
 			}
-			userID := int(userIDFloat)
 
 			ctx := context.WithValue(r.Context(), UserIDKey, userID)
+			ctx = context.WithValue(ctx, UserName, username)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

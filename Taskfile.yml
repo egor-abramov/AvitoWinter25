@@ -16,3 +16,6 @@ tasks:
       - git add .
       - git commit -m "{{.MSG}}"
       - git push -u origin main
+  lines:
+    cmds:
+      - find . -name '*.go' | xargs wc -l | tail -1 | awk '{$1=$1; print}'

@@ -50,7 +50,7 @@ func (r *MerchRepo) GetMerchByName(ctx context.Context, merchName string) (*doma
 func (r *MerchRepo) GetUserMerch(ctx context.Context, userID uuid.UUID) ([]domain.Merch, error) {
 	tr := r.getter.DefaultTrOrDB(ctx, r.pool)
 
-	query := `SELECT m.id, m.name FROM merch m JOIN user_merch um ON m.id = um.merch_id WHERE um.user_id = $1`
+	query := `SELECT m.id, m.name, um.quantity FROM merch m JOIN user_merch um ON m.id = um.merch_id WHERE um.user_id = $1`
 
 	rows, err := tr.Query(ctx, query, userID)
 	if err != nil {
@@ -61,7 +61,7 @@ func (r *MerchRepo) GetUserMerch(ctx context.Context, userID uuid.UUID) ([]domai
 	var merchItems []domain.Merch
 	for rows.Next() {
 		var merch domain.Merch
-		if err := rows.Scan(&merch.ID, &merch.Name); err != nil {
+		if err := rows.Scan(&merch.ID, &merch.Name, &merch.Quantity); err != nil {
 			return nil, err
 		}
 		merchItems = append(merchItems, merch)
@@ -77,7 +77,13 @@ func (r *MerchRepo) AddMerch(ctx context.Context, userID, merchID uuid.UUID) (uu
 
 	var id uuid.UUID
 
-	query := `INSERT INTO user_merch (user_id, merch_id) VALUES ($1, $2) RETURNING id`
+	query := `
+				INSERT INTO user_merch 
+				    (user_id, merch_id, quantity) 
+				VALUES ($1, $2, 1) 
+				ON CONFLICT (user_id, merch_id)
+				DO UPDATE SET quantity = user_merch.quantity + EXCLUDED.quantity 
+				RETURNING id`
 	err := tr.QueryRow(ctx, query, userID, merchID).Scan(&id)
 	if err != nil {
 		return uuid.Nil, err

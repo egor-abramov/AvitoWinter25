@@ -4,7 +4,6 @@ import (
 	"AvitoWinter25/internal/domain"
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	"github.com/google/uuid"
@@ -25,16 +24,14 @@ type UserRepo interface {
 }
 
 type Service struct {
-	log       *slog.Logger
 	repo      Repo
 	coinRepo  CoinRepo
 	userRepo  UserRepo
 	txManager *manager.Manager
 }
 
-func New(log *slog.Logger, repo Repo, coinRepo CoinRepo, userRepo UserRepo, txManager *manager.Manager) *Service {
+func New(repo Repo, coinRepo CoinRepo, userRepo UserRepo, txManager *manager.Manager) *Service {
 	return &Service{
-		log:       log,
 		repo:      repo,
 		coinRepo:  coinRepo,
 		userRepo:  userRepo,

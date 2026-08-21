@@ -3,7 +3,6 @@ package handler
 import (
 	"AvitoWinter25/internal/handler/dto"
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -26,9 +25,8 @@ func NewAuthHandler(authService AuthService, log *slog.Logger) http.HandlerFunc 
 		ctx := r.Context()
 		token, err := authService.Login(ctx, req.Username, req.Password)
 		if err != nil {
-			log.Error(fmt.Sprintf("%s: error processing request: %s", op, err.Error()))
-			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, dto.Error("login user error"))
+			msg := "error processing request"
+			dto.RespondWithError(w, r, log, op, msg, err, http.StatusUnauthorized)
 			return
 		}
 		resp := dto.AuthResponse{Token: token}

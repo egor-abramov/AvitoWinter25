@@ -1,27 +1,27 @@
 package coin
 
 import (
+	"AvitoWinter25/internal/domain"
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
+	"github.com/google/uuid"
 )
 
 type Repo interface {
 	AddCoins(ctx context.Context, username string, amount int) error
 	GetCoins(ctx context.Context, username string) (int, error)
+	GetTransactions(ctx context.Context, userID uuid.UUID) ([]domain.Transaction, error)
 }
 
 type Service struct {
-	log       *slog.Logger
 	repo      Repo
 	txManager *manager.Manager
 }
 
-func New(log *slog.Logger, repo Repo, txManager *manager.Manager) *Service {
+func New(repo Repo, txManager *manager.Manager) *Service {
 	return &Service{
-		log:       log,
 		repo:      repo,
 		txManager: txManager,
 	}
@@ -35,21 +35,29 @@ func (s *Service) GetCoins(ctx context.Context, username string) (int, error) {
 	return coins, nil
 }
 
-func (s *Service) Transact(ctx context.Context, userFrom string, userTo string, amount int) error {
+func (s *Service) Transact(ctx context.Context, t domain.Transaction) error {
 	err := s.txManager.Do(ctx, func(ctx context.Context) error {
-		if userTo == userFrom {
+		if t.UserFrom == t.UserTo {
 			return fmt.Errorf("cannot transact")
 		}
 
-		if err := s.repo.AddCoins(ctx, userTo, amount); err != nil {
+		if err := s.repo.AddCoins(ctx, t.UserFrom, t.Amount); err != nil {
 			return err
 		}
 
-		if err := s.repo.AddCoins(ctx, userFrom, -amount); err != nil {
+		if err := s.repo.AddCoins(ctx, t.UserTo, -t.Amount); err != nil {
 			return err
 		}
 		return nil
 	})
 
 	return err
+}
+
+func (s *Service) GetTransactions(ctx context.Context, userID uuid.UUID) ([]domain.Transaction, error) {
+	transactions, err := s.repo.GetTransactions(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return transactions, nil
 }

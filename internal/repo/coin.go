@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"AvitoWinter25/internal/domain"
 	"context"
 	"errors"
 	"log/slog"
@@ -49,4 +50,38 @@ func (r *CoinRepo) GetCoins(ctx context.Context, userID uuid.UUID) (int, error) 
 	}
 
 	return coins, nil
+}
+
+func (r *CoinRepo) GetTransactions(ctx context.Context, userID uuid.UUID) ([]domain.Transaction, error) {
+	tr := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	query := `
+			SELECT 
+    				t.id, 
+    				uf.username AS user_from, 
+    				ut.username AS user_to,
+    				t.amount 
+			FROM transaction t 
+			LEFT JOIN users uf ON uf.id = t.from_user 
+			LEFT JOIN users ut ON ut.id = t.to_user
+			WHERE from_user = $1 OR to_user = $1`
+	rows, err := tr.Query(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var transactions []domain.Transaction
+	for rows.Next() {
+		var transaction domain.Transaction
+
+		if err := rows.Scan(&transaction.ID, &transaction.UserTo, &transaction.Amount); err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return transactions, nil
 }
