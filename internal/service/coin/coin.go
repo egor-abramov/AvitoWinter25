@@ -10,8 +10,8 @@ import (
 )
 
 type Repo interface {
-	AddCoins(ctx context.Context, username string, amount int) error
-	GetCoins(ctx context.Context, username string) (int, error)
+	AddCoinsByUsername(ctx context.Context, username string, amount int) error
+	GetCoins(ctx context.Context, userID uuid.UUID) (int, error)
 	GetTransactions(ctx context.Context, userID uuid.UUID) ([]domain.Transaction, error)
 }
 
@@ -27,8 +27,8 @@ func New(repo Repo, txManager *manager.Manager) *Service {
 	}
 }
 
-func (s *Service) GetCoins(ctx context.Context, username string) (int, error) {
-	coins, err := s.repo.GetCoins(ctx, username)
+func (s *Service) GetCoins(ctx context.Context, userID uuid.UUID) (int, error) {
+	coins, err := s.repo.GetCoins(ctx, userID)
 	if err != nil {
 		return 0, err
 	}
@@ -41,11 +41,11 @@ func (s *Service) Transact(ctx context.Context, t domain.Transaction) error {
 			return fmt.Errorf("cannot transact")
 		}
 
-		if err := s.repo.AddCoins(ctx, t.UserFrom, t.Amount); err != nil {
+		if err := s.repo.AddCoinsByUsername(ctx, t.UserFrom, t.Amount); err != nil {
 			return err
 		}
 
-		if err := s.repo.AddCoins(ctx, t.UserTo, -t.Amount); err != nil {
+		if err := s.repo.AddCoinsByUsername(ctx, t.UserTo, -t.Amount); err != nil {
 			return err
 		}
 		return nil

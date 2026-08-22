@@ -9,7 +9,7 @@ import (
 )
 
 type CoinProvider interface {
-	GetCoins(ctx context.Context, username string) (int, error)
+	GetCoins(ctx context.Context, userID uuid.UUID) (int, error)
 	GetTransactions(ctx context.Context, userID uuid.UUID) ([]domain.Transaction, error)
 }
 
@@ -29,7 +29,7 @@ func New(coinProvider CoinProvider, merchProvider MerchProvider) *Service {
 	}
 }
 
-func (s *Service) GetInfo(ctx context.Context, userID uuid.UUID, username string) (*domain.Info, error) {
+func (s *Service) GetInfo(ctx context.Context, userID uuid.UUID) (*domain.Info, error) {
 	var (
 		coins        int
 		transactions []domain.Transaction
@@ -40,7 +40,7 @@ func (s *Service) GetInfo(ctx context.Context, userID uuid.UUID, username string
 
 	g.Go(func() error {
 		var err error
-		coins, err = s.coinProvider.GetCoins(gCtx, username)
+		coins, err = s.coinProvider.GetCoins(gCtx, userID)
 		return err
 	})
 
