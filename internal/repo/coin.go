@@ -4,7 +4,6 @@ import (
 	"AvitoWinter25/internal/domain"
 	"context"
 	"errors"
-	"log/slog"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/google/uuid"
@@ -14,14 +13,12 @@ import (
 
 type CoinRepo struct {
 	pool   *pgxpool.Pool
-	log    *slog.Logger
 	getter *trmpgx.CtxGetter
 }
 
-func NewCoinRepo(log *slog.Logger, pool *pgxpool.Pool, getter *trmpgx.CtxGetter) *CoinRepo {
+func NewCoinRepo(pool *pgxpool.Pool, getter *trmpgx.CtxGetter) *CoinRepo {
 	return &CoinRepo{
 		pool:   pool,
-		log:    log,
 		getter: getter,
 	}
 }
