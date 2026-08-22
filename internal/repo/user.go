@@ -23,6 +23,15 @@ func NewUserRepo(pool *pgxpool.Pool) *UserRepo {
 	}
 }
 
+func (r *UserRepo) IsUsernameExists(ctx context.Context, username string) (bool, error) {
+	tr := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	query := `SELECT EXISTS (SELECT 1 from users WHERE username = $1)`
+	var exists bool
+	err := tr.QueryRow(ctx, query, username).Scan(&exists)
+	return exists, err
+}
+
 func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (*domain.User, error) {
 	tr := r.getter.DefaultTrOrDB(ctx, r.pool)
 

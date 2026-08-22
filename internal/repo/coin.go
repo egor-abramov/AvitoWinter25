@@ -58,6 +58,18 @@ func (r *CoinRepo) GetCoins(ctx context.Context, userID uuid.UUID) (int, error) 
 	return coins, nil
 }
 
+func (r *CoinRepo) AddTransaction(ctx context.Context, userFrom *domain.User, userTo *domain.User, amount int) (uuid.UUID, error) {
+	tr := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	query := `INSERT INTO transaction (from_user, to_user, amount) VALUES ($1, $2, $3) RETURNING id`
+	var id uuid.UUID
+	err := tr.QueryRow(ctx, query, userFrom.ID, userTo.ID, amount).Scan(&id)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return id, nil
+}
+
 func (r *CoinRepo) GetTransactions(ctx context.Context, userID uuid.UUID) ([]domain.Transaction, error) {
 	tr := r.getter.DefaultTrOrDB(ctx, r.pool)
 
@@ -81,7 +93,7 @@ func (r *CoinRepo) GetTransactions(ctx context.Context, userID uuid.UUID) ([]dom
 	for rows.Next() {
 		var transaction domain.Transaction
 
-		if err := rows.Scan(&transaction.ID, &transaction.UserTo, &transaction.Amount); err != nil {
+		if err := rows.Scan(&transaction.ID, &transaction.UserFrom, &transaction.UserTo, &transaction.Amount); err != nil {
 			return nil, err
 		}
 		transactions = append(transactions, transaction)

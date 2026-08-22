@@ -3,11 +3,9 @@ package repo
 import (
 	"AvitoWinter25/internal/domain"
 	"context"
-	"errors"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,17 +26,14 @@ func (r *MerchRepo) GetMerchByName(ctx context.Context, merchName string) (*doma
 
 	var merch domain.Merch
 
-	query := `SELECT id, name, price from merch WHERE merch = $1`
+	query := `SELECT id, name, price from merch WHERE name = $1`
 	err := tr.QueryRow(ctx, query, merchName).Scan(
 		&merch.ID,
 		&merch.Name,
 		&merch.Price,
 	)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
-		}
-		return &merch, err
+		return nil, err
 	}
 
 	return &merch, nil
