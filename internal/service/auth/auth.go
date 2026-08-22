@@ -3,7 +3,7 @@ package auth
 import (
 	"AvitoWinter25/internal/domain"
 	"context"
-	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -22,7 +22,7 @@ type Service struct {
 	jwtExpire time.Duration
 }
 
-func New(repo Repo, log *slog.Logger, jwtSecret string, jwrExpire time.Duration) *Service {
+func New(repo Repo, jwtSecret string, jwrExpire time.Duration, log *slog.Logger) *Service {
 	return &Service{
 		repo:      repo,
 		log:       log,
@@ -37,26 +37,26 @@ func (s *Service) Login(ctx context.Context, username, password string) (string,
 	user, err := s.repo.GetUserByUsername(ctx, username)
 	if err != nil {
 		s.log.Error("error getting user by username", slog.String("op", op), slog.Any("err", err))
-		return "", err
+		return "", fmt.Errorf("error getting user by username: %s", username)
 	}
 
 	if user == nil {
 		hashedPassword, err := hashPassword(password)
 		if err != nil {
 			s.log.Error("error hashing password", slog.String("op", op), slog.Any("err", err))
-			return "", err
+			return "", fmt.Errorf("error hashing password")
 		}
 		id, err := s.repo.CreateUser(ctx, username, hashedPassword)
 		if err != nil {
 			s.log.Error("error creating user", slog.String("op", op), slog.Any("err", err))
-			return "", err
+			return "", fmt.Errorf("error creating user")
 		}
 		return generateToken(id, username, s.jwtSecret, s.jwtExpire)
 	}
 
 	if !checkPasswordHash(password, user.HashedPassword) {
-		s.log.Error("eerror hashing password", slog.String("op", op), slog.Any("err", err))
-		return "", errors.New("invalid password")
+		s.log.Error("invalid password", slog.String("op", op), slog.Any("err", err))
+		return "", fmt.Errorf("invalid password")
 	}
 	return generateToken(user.ID, username, s.jwtSecret, s.jwtExpire)
 }

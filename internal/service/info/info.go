@@ -3,6 +3,8 @@ package info
 import (
 	"AvitoWinter25/internal/domain"
 	"context"
+	"fmt"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
@@ -20,16 +22,20 @@ type MerchProvider interface {
 type Service struct {
 	coinProvider  CoinProvider
 	merchProvider MerchProvider
+	log           *slog.Logger
 }
 
-func New(coinProvider CoinProvider, merchProvider MerchProvider) *Service {
+func New(coinProvider CoinProvider, merchProvider MerchProvider, log *slog.Logger) *Service {
 	return &Service{
 		coinProvider:  coinProvider,
 		merchProvider: merchProvider,
+		log:           log,
 	}
 }
 
 func (s *Service) GetInfo(ctx context.Context, userID uuid.UUID) (*domain.Info, error) {
+	const op = "service.info.GetInfo"
+
 	var (
 		coins        int
 		transactions []domain.Transaction
@@ -57,7 +63,8 @@ func (s *Service) GetInfo(ctx context.Context, userID uuid.UUID) (*domain.Info, 
 	})
 
 	if err := g.Wait(); err != nil {
-		return nil, err
+		s.log.Error("getting info failed", slog.String("op", op), slog.Any("err", err))
+		return nil, fmt.Errorf("getting info failed")
 	}
 
 	return &domain.Info{
