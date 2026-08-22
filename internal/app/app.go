@@ -27,7 +27,7 @@ func New(log *slog.Logger, cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	userRepo := repo.NewUserRepo(log, pool, nil)
+	userRepo := repo.NewUserRepo(pool, nil)
 	authService := auth.New(userRepo, log, cfg.JWT.Secret, cfg.JWT.ExpTime)
 	authHandler := handler.NewAuthHandler(authService, log)
 

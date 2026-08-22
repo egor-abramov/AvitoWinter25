@@ -4,7 +4,6 @@ import (
 	"AvitoWinter25/internal/domain"
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -37,26 +36,26 @@ func (s *Service) Login(ctx context.Context, username, password string) (string,
 
 	user, err := s.repo.GetUserByUsername(ctx, username)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("%s: error getting user by username: %s", op, err.Error()))
+		s.log.Error("error getting user by username", slog.String("op", op), slog.Any("err", err))
 		return "", err
 	}
 
 	if user == nil {
 		hashedPassword, err := hashPassword(password)
 		if err != nil {
-			s.log.Error(fmt.Sprintf("%s: error hashing password: %s", op, err.Error()))
+			s.log.Error("error hashing password", slog.String("op", op), slog.Any("err", err))
 			return "", err
 		}
 		id, err := s.repo.CreateUser(ctx, username, hashedPassword)
 		if err != nil {
-			s.log.Error(fmt.Sprintf("%s: error creating user: %s", op, err.Error()))
+			s.log.Error("error creating user", slog.String("op", op), slog.Any("err", err))
 			return "", err
 		}
 		return generateToken(id, username, s.jwtSecret, s.jwtExpire)
 	}
 
 	if !checkPasswordHash(password, user.HashedPassword) {
-		s.log.Error(fmt.Sprintf("%s: error hashing password: %s", op, err.Error()))
+		s.log.Error("eerror hashing password", slog.String("op", op), slog.Any("err", err))
 		return "", errors.New("invalid password")
 	}
 	return generateToken(user.ID, username, s.jwtSecret, s.jwtExpire)

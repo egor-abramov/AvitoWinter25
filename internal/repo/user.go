@@ -4,7 +4,6 @@ import (
 	"AvitoWinter25/internal/domain"
 	"context"
 	"errors"
-	"log/slog"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/google/uuid"
@@ -17,7 +16,7 @@ type UserRepo struct {
 	getter *trmpgx.CtxGetter
 }
 
-func NewUserRepo(log *slog.Logger, pool *pgxpool.Pool, getter *trmpgx.CtxGetter) *UserRepo {
+func NewUserRepo(pool *pgxpool.Pool, getter *trmpgx.CtxGetter) *UserRepo {
 	return &UserRepo{
 		pool:   pool,
 		getter: getter,
