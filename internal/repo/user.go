@@ -16,10 +16,10 @@ type UserRepo struct {
 	getter *trmpgx.CtxGetter
 }
 
-func NewUserRepo(pool *pgxpool.Pool, getter *trmpgx.CtxGetter) *UserRepo {
+func NewUserRepo(pool *pgxpool.Pool) *UserRepo {
 	return &UserRepo{
 		pool:   pool,
-		getter: getter,
+		getter: trmpgx.DefaultCtxGetter,
 	}
 }
 

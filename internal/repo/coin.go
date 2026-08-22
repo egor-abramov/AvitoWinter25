@@ -16,10 +16,10 @@ type CoinRepo struct {
 	getter *trmpgx.CtxGetter
 }
 
-func NewCoinRepo(pool *pgxpool.Pool, getter *trmpgx.CtxGetter) *CoinRepo {
+func NewCoinRepo(pool *pgxpool.Pool) *CoinRepo {
 	return &CoinRepo{
 		pool:   pool,
-		getter: getter,
+		getter: trmpgx.DefaultCtxGetter,
 	}
 }
 
@@ -29,6 +29,15 @@ func (r *CoinRepo) AddCoins(ctx context.Context, userID uuid.UUID, amount int) e
 	query := `UPDATE users SET coins = coins + $1 WHERE id = $2`
 
 	_, err := tr.Exec(ctx, query, amount, userID)
+	return err
+}
+
+func (r *CoinRepo) AddCoinsByUsername(ctx context.Context, username string, amount int) error {
+	tr := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	query := `UPDATE users SET coins = coins + $1 WHERE username = $2`
+
+	_, err := tr.Exec(ctx, query, amount, username)
 	return err
 }
 

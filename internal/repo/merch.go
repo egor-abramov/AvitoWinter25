@@ -16,10 +16,10 @@ type MerchRepo struct {
 	getter *trmpgx.CtxGetter
 }
 
-func NewMerchRepo(pool *pgxpool.Pool, getter *trmpgx.CtxGetter) *MerchRepo {
+func NewMerchRepo(pool *pgxpool.Pool) *MerchRepo {
 	return &MerchRepo{
 		pool:   pool,
-		getter: getter,
+		getter: trmpgx.DefaultCtxGetter,
 	}
 }
 
