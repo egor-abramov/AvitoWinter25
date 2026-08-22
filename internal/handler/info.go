@@ -24,21 +24,20 @@ func NewInfoHandler(infoService InfoService, log *slog.Logger) http.HandlerFunc 
 		id, ok := ctx.Value(middleware.UserIDKey).(uuid.UUID)
 		if !ok {
 			msg := "user id not found in context"
-			dto.RespondWithError(w, r, log, op, msg, nil, http.StatusInternalServerError)
+			dto.RespondWithError(w, r, log, op, msg, http.StatusInternalServerError)
 			return
 		}
 
 		username, ok := ctx.Value(middleware.UserName).(string)
 		if !ok {
 			msg := "username not found in context"
-			dto.RespondWithError(w, r, log, op, msg, nil, http.StatusInternalServerError)
+			dto.RespondWithError(w, r, log, op, msg, http.StatusInternalServerError)
 			return
 		}
 
 		info, err := infoService.GetInfo(ctx, id)
 		if err != nil {
-			msg := "error getting info"
-			dto.RespondWithError(w, r, log, op, msg, err, http.StatusInternalServerError)
+			dto.RespondWithError(w, r, log, op, err.Error(), http.StatusInternalServerError)
 			return
 		}
 

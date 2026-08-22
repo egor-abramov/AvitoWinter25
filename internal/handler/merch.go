@@ -26,14 +26,13 @@ func NewBuyHandler(service BuyService, log *slog.Logger) http.HandlerFunc {
 		userID, ok := ctx.Value(middleware.UserIDKey).(uuid.UUID)
 		if !ok {
 			msg := "user not found in context"
-			dto.RespondWithError(w, r, log, op, msg, nil, http.StatusInternalServerError)
+			dto.RespondWithError(w, r, log, op, msg, http.StatusInternalServerError)
 			return
 		}
 
 		err := service.Buy(ctx, userID, merch)
 		if err != nil {
-			msg := "buying error"
-			dto.RespondWithError(w, r, log, op, msg, err, http.StatusInternalServerError)
+			dto.RespondWithError(w, r, log, op, err.Error(), http.StatusInternalServerError)
 			return
 		}
 

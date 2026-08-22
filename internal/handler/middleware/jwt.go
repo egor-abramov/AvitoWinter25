@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"AvitoWinter25/internal/handler/dto"
 	"context"
 	"fmt"
 	"net/http"
@@ -22,11 +23,14 @@ func NewJWTExtractor(secretKey string) func(handler http.Handler) http.Handler {
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
 				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, dto.Error("missing authorization header"))
+				return
 			}
 
 			headerParts := strings.Split(authHeader, " ")
 			if len(headerParts) != 2 || headerParts[0] != "Bearer" {
 				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, dto.Error("invalid authorization header format"))
 				return
 			}
 			tokenStr := headerParts[1]
@@ -40,24 +44,28 @@ func NewJWTExtractor(secretKey string) func(handler http.Handler) http.Handler {
 
 			if err != nil || !token.Valid {
 				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, dto.Error("invalid or expired token"))
 				return
 			}
 
 			claims, ok := token.Claims.(jwt.MapClaims)
 			if !ok {
 				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, dto.Error("invalid token claims"))
 				return
 			}
 
-			userID, err := uuid.Parse(claims["id"].(string))
+			userID, err := uuid.Parse(claims[UserIDKey].(string))
 			if err != nil {
 				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, dto.Error("invalid user id in token"))
 				return
 			}
 
-			username, ok := claims["username"].(string)
+			username, ok := claims[UserName].(string)
 			if !ok {
 				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, dto.Error("invalid username in token"))
 				return
 			}
 

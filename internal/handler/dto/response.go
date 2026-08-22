@@ -63,8 +63,8 @@ func ValidationError(errs validator.ValidationErrors) ErrorResponse {
 	return Error(strings.Join(errMessages, "; "))
 }
 
-func RespondWithError(w http.ResponseWriter, r *http.Request, log *slog.Logger, op, msg string, err error, status int) {
-	log.Error("request failed", slog.String("op", op), slog.String("msg", msg), slog.Any("err", err))
+func RespondWithError(w http.ResponseWriter, r *http.Request, log *slog.Logger, op, msg string, status int) {
+	log.Error("request failed", slog.String("op", op), slog.String("msg", msg))
 
 	render.Status(r, status)
 	render.JSON(w, r, Error(msg))

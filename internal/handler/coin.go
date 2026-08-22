@@ -25,10 +25,10 @@ func NewSendCoinHandler(service TransactionService, log *slog.Logger) http.Handl
 		}
 
 		ctx := r.Context()
-		userFrom, ok := ctx.Value(middleware.UserIDKey).(string)
+		userFrom, ok := ctx.Value(middleware.UserName).(string)
 		if !ok {
 			msg := "username not found in context"
-			dto.RespondWithError(w, r, log, op, msg, nil, http.StatusInternalServerError)
+			dto.RespondWithError(w, r, log, op, msg, http.StatusInternalServerError)
 			return
 		}
 
@@ -39,8 +39,7 @@ func NewSendCoinHandler(service TransactionService, log *slog.Logger) http.Handl
 		}
 		err := service.Transact(ctx, tr)
 		if err != nil {
-			msg := "transact error"
-			dto.RespondWithError(w, r, log, op, msg, err, http.StatusInternalServerError)
+			dto.RespondWithError(w, r, log, op, err.Error(), http.StatusBadRequest)
 			return
 		}
 

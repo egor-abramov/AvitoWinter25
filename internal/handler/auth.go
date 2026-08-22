@@ -25,8 +25,7 @@ func NewAuthHandler(authService AuthService, log *slog.Logger) http.HandlerFunc 
 		ctx := r.Context()
 		token, err := authService.Login(ctx, req.Username, req.Password)
 		if err != nil {
-			msg := "error processing request"
-			dto.RespondWithError(w, r, log, op, msg, err, http.StatusUnauthorized)
+			dto.RespondWithError(w, r, log, op, err.Error(), http.StatusUnauthorized)
 			return
 		}
 		resp := dto.AuthResponse{Token: token}
