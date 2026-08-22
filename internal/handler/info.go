@@ -13,7 +13,7 @@ import (
 )
 
 type InfoService interface {
-	GetInfo(ctx context.Context, userID uuid.UUID, username string) (*domain.Info, error)
+	GetInfo(ctx context.Context, userID uuid.UUID) (*domain.Info, error)
 }
 
 func NewInfoHandler(infoService InfoService, log *slog.Logger) http.HandlerFunc {
@@ -35,7 +35,7 @@ func NewInfoHandler(infoService InfoService, log *slog.Logger) http.HandlerFunc 
 			return
 		}
 
-		info, err := infoService.GetInfo(ctx, id, username)
+		info, err := infoService.GetInfo(ctx, id)
 		if err != nil {
 			msg := "error getting info"
 			dto.RespondWithError(w, r, log, op, msg, err, http.StatusInternalServerError)
