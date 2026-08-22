@@ -43,10 +43,10 @@ func New(log *slog.Logger, cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	authService := auth.New(userRepo, log, cfg.JWT.Secret, cfg.JWT.ExpTime)
-	coinService := coin.New(coinRepo, txManager)
-	merchService := merch.New(merchRepo, coinRepo, userRepo, txManager)
-	infoService := info.New(coinService, merchService)
+	authService := auth.New(userRepo, cfg.JWT.Secret, cfg.JWT.ExpTime, log)
+	coinService := coin.New(coinRepo, userRepo, txManager, log)
+	merchService := merch.New(merchRepo, coinRepo, userRepo, txManager, log)
+	infoService := info.New(coinService, merchService, log)
 
 	authHandler := handler.NewAuthHandler(authService, log)
 	coinHandler := handler.NewSendCoinHandler(coinService, log)
